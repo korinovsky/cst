@@ -1,0 +1,10 @@
+{
+  "name": "korinovsky/cst",
+  "description": "CST PHP Framework - Development Package",
+  "keywords": [
+    "cst",
+    "framework"
+  ],
+  "homepage": "https://github.com/korinovsky/cst",
+  "type": "cst-extension"
+}
