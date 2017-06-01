@@ -6,5 +6,8 @@
     "framework"
   ],
   "homepage": "https://github.com/korinovsky/cst",
-  "type": "cst-extension"
+  "type": "cst-extension",
+  "require": {
+    "php": ">=7.1"
+  }
 }
