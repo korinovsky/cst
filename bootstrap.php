@@ -5,7 +5,7 @@
  * Time: 17:12
  */
 
-defined('APP_DIR') || define('APP_DIR', realpath($_SERVER['DOCUMENT_ROOT'].'/../app').'/');
+defined('APP_DIR') || define('APP_DIR', empty($_SERVER['DOCUMENT_ROOT']) ? dirname($_SERVER['PHP_SELF']).'/app/' : realpath($_SERVER['DOCUMENT_ROOT'].'/../app').'/');
 
 defined('BEGIN_TIME') || define('BEGIN_TIME', microtime(true));
 
