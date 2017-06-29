@@ -149,7 +149,7 @@ class StringHelper
 //    protected static function truncateHtml($string, $count, $suffix, $encoding = false)
 //    {
 //        $config = \HTMLPurifier_Config::create(null);
-//        $config->set('Cache.SerializerPath', \Yii::$app->getRuntimePath());
+//        $config->set('Cache.SerializerPath', \App::$app->getRuntimePath());
 //        $lexer = \HTMLPurifier_Lexer::create($config);
 //        $tokens = $lexer->tokenizeHTML($string, $config, null);
 //        $openTokens = 0;

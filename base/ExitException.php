@@ -11,7 +11,7 @@ namespace cst\base;
 /**
  * ExitException represents a normal termination of an application.
  *
- * Do not catch ExitException. Yii will handle this exception to terminate the application gracefully.
+ * Do not catch ExitException. App will handle this exception to terminate the application gracefully.
  */
 class ExitException extends \Exception
 {

@@ -7,6 +7,8 @@
 
 namespace cst\base;
 use cst\helpers\ArrayHelper;
+use cst\helpers\Inflector;
+use cst\log\Logger;
 
 
 class BaseApp
@@ -106,6 +108,27 @@ class BaseApp
         return $object;
     }
 
+    public static function runAction($action = null) {
+        if ($action) {
+            if ($parsed = self::$in->parseAction($action)) {
+                self::$in->initAction($parsed);
+            }
+            else {
+                throw new InvalidConfigException();
+            }
+        }
+        //var_dump(self::$out);
+
+        // Инициализируем контроллер
+        self::$controller = new self::$in->controller();
+        //var_dump(self::$controller);
+
+        // Выполняем действие
+        /** @var \cst\web\Out|\cst\console\Out|string $result */
+        $result = self::$controller->runAction(self::$in->action, self::$in->params);
+        return $result;
+    }
+
     /**
      * Creates a new object using the given configuration.
      *
@@ -141,7 +164,7 @@ class BaseApp
      *   The callable should return a new instance of the object being created.
      *
      * @param array $params the constructor parameters
-     * @return object the created object
+     * @return Object the created object
      * @throws InvalidConfigException if the configuration is invalid.
      */
     public static function createObject($type, array $params = [])
@@ -302,4 +325,252 @@ class BaseApp
 //        }
     }
 
+    /**
+     * Logs a trace message.
+     * Trace messages are logged mainly for development purpose to see
+     * the execution work flow of some code.
+     * @param string $message the message to be logged.
+     * @param string $category the category of the message.
+     */
+    public static function trace($message, $category = 'app')
+    {
+        if (DEBUG) {
+            self::getLogger()->log($message, Logger::LEVEL_TRACE, $category);
+        }
+    }
+
+    /**
+     * Logs an error message.
+     * An error message is typically logged when an unrecoverable error occurs
+     * during the execution of an application.
+     * @param string $message the message to be logged.
+     * @param string $category the category of the message.
+     */
+    public static function error($message, $category = 'app')
+    {
+        self::getLogger()->log($message, Logger::LEVEL_ERROR, $category);
+    }
+
+    /**
+     * Logs a warning message.
+     * A warning message is typically logged when an error occurs while the execution
+     * can still continue.
+     * @param string $message the message to be logged.
+     * @param string $category the category of the message.
+     */
+    public static function warning($message, $category = 'app')
+    {
+        self::getLogger()->log($message, Logger::LEVEL_WARNING, $category);
+    }
+
+    /**
+     * Logs an informative message.
+     * An informative message is typically logged by an application to keep record of
+     * something important (e.g. an administrator logs in).
+     * @param string $message the message to be logged.
+     * @param string $category the category of the message.
+     */
+    public static function info($message, $category = 'app')
+    {
+        self::getLogger()->log($message, Logger::LEVEL_INFO, $category);
+    }
+
+    /**
+     * Marks the beginning of a code block for profiling.
+     * This has to be matched with a call to [[endProfile]] with the same category name.
+     * The begin- and end- calls must also be properly nested. For example,
+     *
+     * ~~~
+     * \App::beginProfile('block1');
+     * // some code to be profiled
+     *     \App::beginProfile('block2');
+     *     // some other code to be profiled
+     *     \App::endProfile('block2');
+     * \App::endProfile('block1');
+     * ~~~
+     * @param string $token token for the code block
+     * @param string $category the category of this log message
+     * @see endProfile()
+     */
+    public static function beginProfile($token, $category = 'application')
+    {
+        static::getLogger()->log($token, Logger::LEVEL_PROFILE_BEGIN, $category);
+    }
+
+    /**
+     * Marks the end of a code block for profiling.
+     * This has to be matched with a previous call to [[beginProfile]] with the same category name.
+     * @param string $token token for the code block
+     * @param string $category the category of this log message
+     * @see beginProfile()
+     */
+    public static function endProfile($token, $category = 'application')
+    {
+        static::getLogger()->log($token, Logger::LEVEL_PROFILE_END, $category);
+    }
+
+    /**
+     * Returns an HTML hyperlink that can be displayed on your Web page showing "Powered by App Framework" information.
+     * @return string an HTML hyperlink that can be displayed on your Web page showing "Powered by App Framework" information
+     */
+    public static function powered()
+    {
+        return self::t('cst', 'Powered by {0}', ['<a href="http://www.roscap.ru/" rel="external">RosCap Framework</a>']);
+    }
+
+    /**
+     * Returns the time zone used by this application.
+     * This is a simple wrapper of PHP function date_default_timezone_get().
+     * If time zone is not configured in php.ini or application config,
+     * it will be set to UTC by default.
+     * @return string the time zone used by this application.
+     * @see http://php.net/manual/en/function.date-default-timezone-get.php
+     */
+    public static function getTimeZone()
+    {
+        return date_default_timezone_get();
+    }
+
+    /**
+     * Sets the time zone used by this application.
+     * This is a simple wrapper of PHP function date_default_timezone_set().
+     * Refer to the [php manual](http://www.php.net/manual/en/timezones.php) for available timezones.
+     * @param string $value the time zone used by this application.
+     * @see http://php.net/manual/en/function.date-default-timezone-set.php
+     */
+    public static function setTimeZone($value)
+    {
+        date_default_timezone_set($value);
+    }
+
+    /**
+     * Creates a URL using the given route and query parameters.
+     *
+     * You may specify the route as a string, e.g., `site/index`. You may also use an array
+     * if you want to specify additional query parameters for the URL being created. The
+     * array format must be:
+     *
+     * ```php
+     * // generates: /index.php?r=site/index&param1=value1&param2=value2
+     * ['site/index', 'param1' => 'value1', 'param2' => 'value2']
+     * ```
+     *
+     * If you want to create a URL with an anchor, you can use the array format with a `#` parameter.
+     * For example,
+     *
+     * ```php
+     * // generates: /index.php?r=site/index&param1=value1#name
+     * ['site/index', 'param1' => 'value1', '#' => 'name']
+     * ```
+     *
+     * The URL created is a relative one. Use [[createAbsoluteUrl()]] to create an absolute URL.
+     *
+     * Note that unlike [[\helpers\Url::toRoute()]], this method always treats the given route
+     * as an absolute route.
+     *
+     * @param string|array $params use a string to represent a route (e.g. `site/index`),
+     * or an array to represent a route with query parameters (e.g. `['site/index', 'param1' => 'value1']`).
+     * @return string the created URL
+     */
+    public static function createUrl($params)
+    {
+        if (is_string($params) && (strpos($params, ':') !== false || strpos($params, '#') === 0)) {
+            // с абсолютной ссылкой со схемой нечего делать
+            return $params;
+        }
+
+        $params = (array) $params;
+
+        $anchor = isset($params['#']) ? '#' . $params['#'] : '';
+        unset($params['#']);
+
+        $route = isset($params[0]) ? $params[0] : (self::$in instanceof \cst\web\Out ? self::$in->pathUri : '');
+        unset($params[0]);
+
+        $pos = null;
+        if ($route) {
+            if (($pos = strpos($route, '/')) === 0) {
+                // абсолютная ссылка /base/controller/action
+            }
+            else {
+                if ($pos === false) {
+                    // одно слово action
+                    if (self::$in->route[3] === $route) {
+                        $route = '';
+                    }
+                    if (isset(self::$in->route[1])) {
+                        $route = self::$in->route[1].'/'.$route;
+                    }
+                }
+                else {
+                    // не одно слово controller/action
+                    $detail = [];
+                    $path = explode('/', $route);
+                    $name = Inflector::id2camel($path0 = array_pop($path));
+                    $controller = null;
+                    if (file_exists($f = CONTROL_PATH.($path ? implode('/', $path).'/' : '').$name.'.php')) {
+                        $controller = '\\app\\controllers\\'.($path ? implode('\\', $path).'\\' : '').$name;
+                        $detail[0] = ($path ? implode('/', $path).'/' : '').$path0;
+                    }
+                    else {
+                        if ($path) {
+                            $name2 = Inflector::id2camel($path1 = array_pop($path));
+                            $controller = '\\app\\controllers\\'.($path ? implode('\\', $path).'\\' : '').$name2;
+                            $detail[0] = ($path ? implode('/', $path).'/' : '').$path1;
+                        }
+                        $detail[1] = $path0;
+                    }
+                    if ($controller && class_exists($controller)) {
+                        if ($controller === '\\app\\controllers\\Main') {
+                            unset($detail[0]);
+                        }
+                        if (isset($detail[1]) && $detail[1] === Inflector::camel2id(substr(get_class_vars($controller)['defaultAction'], 6))) {
+                            unset($detail[1]);
+                        }
+                        $route = implode('/', $detail);
+                    }
+                    else {
+                        // путь не найден
+                    }
+                }
+                $route = trim($route, '/');
+            }
+        }
+
+        $url = ($pos !== 0 ? self::$in->getBaseUrl().'/' : '').$route;
+
+        if (!empty($params) && ($query = http_build_query($params)) !== '') {
+            $url .= '?' . $query;
+        }
+
+        return $url.$anchor;
+    }
+
+    /**
+     * Creates an absolute URL using the given route and query parameters.
+     *
+     * This method prepends the URL created by [[createUrl()]] with the [[hostInfo]].
+     *
+     * Note that unlike [[\helpers\Url::toRoute()]], this method always treats the given route
+     * as an absolute route.
+     *
+     * @param string|array $params use a string to represent a route (e.g. `site/index`),
+     * or an array to represent a route with query parameters (e.g. `['site/index', 'param1' => 'value1']`).
+     * @param string $scheme the scheme to use for the url (either `http` or `https`). If not specified
+     * the scheme of the current request will be used.
+     * @return string the created URL
+     * @see createUrl()
+     */
+    public static function createAbsoluteUrl($params, $scheme = null)
+    {
+        $url = self::createUrl($params);
+        if (strpos($url, '://') === false) {
+            $url = self::$in->getHostInfo() . $url;
+        }
+        if (is_string($scheme) && ($pos = strpos($url, '://')) !== false) {
+            $url = $scheme . substr($url, $pos);
+        }
+
+        return $url;
+    }
 }

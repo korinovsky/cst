@@ -37,7 +37,7 @@ class Security extends Object
      *
      * > Warning: All OpenSSL ciphers that we recommend are in the default value, i.e. AES in CBC mode.
      *
-     * > Note: Yii's encryption protocol uses the same size for cipher key, HMAC signature key and key
+     * > Note: App's encryption protocol uses the same size for cipher key, HMAC signature key and key
      * derivation salt.
      */
     public $allowedCiphers = [

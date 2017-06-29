@@ -304,7 +304,7 @@ class Object implements Configurable
             return $reflection->newInstanceArgs($params);
         }
 
-        if ($reflection->implementsInterface('core\Configurable')) {
+        if ($reflection->implementsInterface('cst\Configurable')) {
             // set $config as the last parameter
             $params[] = $config;
             return $reflection->newInstanceArgs($params);
@@ -323,14 +323,14 @@ class Object implements Configurable
      * The reference may be specified as a string or an Instance object. If the former,
      * it will be treated as a component ID, a class/interface name or an alias, depending on the container type.
      *
-     * If you do not specify a container, the method will first try `Yii::$app` followed by `Yii::$container`.
+     * If you do not specify a container, the method will first try `App::$app` followed by `App::$container`.
      *
      * For example,
      *
      * ```php
-     * use core\db\Connection;
+     * use cst\db\Connection;
      *
-     * // returns Yii::$app->db
+     * // returns App::$app->db
      * $db = Instance::ensure('db', Connection::className());
      * // returns an instance of Connection using the given configuration
      * $db = Instance::ensure(['dsn' => 'sqlite:path/to/my.db'], Connection::className());

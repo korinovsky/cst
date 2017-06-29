@@ -10,8 +10,15 @@ use App;
 use cst\base\InvalidConfigException;
 use cst\base\InvalidParamException;
 use cst\base\Object;
+use cst\helpers\FormatConverter;
 use cst\helpers\Html;
+use cst\helpers\HtmlPurifier;
+use DateInterval;
 use DateTime;
+use DateTimeInterface;
+use DateTimeZone;
+use IntlDateFormatter;
+use NumberFormatter;
 
 
 /**
@@ -21,8 +28,8 @@ use DateTime;
  * The behavior of some of them may be configured via the properties of Formatter. For example,
  * by configuring [[dateFormat]], one may control how [[asDate()]] formats the value into a date string.
  *
- * Formatter is configured as an application component in [[\core\Application]] by default.
- * You can access that instance via `Yii::$app->formatter`.
+ * Formatter is configured as an application component in [[\cst\Application]] by default.
+ * You can access that instance via `App::$app->formatter`.
  *
  * The Formatter class is designed to format values according to a [[locale]]. For this feature to work
  * the [PHP intl extension](http://php.net/manual/en/book.intl.php) has to be installed.
@@ -31,11 +38,6 @@ use DateTime;
  * Note that even if the intl extension is installed, formatting date and time values for years >=2038 or <=1901
  * on 32bit systems will fall back to the PHP implementation because intl uses a 32bit UNIX timestamp internally.
  * On a 64bit system the intl formatter is used in all cases if installed.
- *
- * @author Qiang Xue <qiang.xue@gmail.com>
- * @author Enrica Ruedin <e.ruedin@guggach.com>
- * @author Carsten Brandt <mail@cebe.cc>
- * @since 2.0
  */
 class Formatter extends Object
 {
@@ -56,7 +58,7 @@ class Formatter extends Object
      * @var string the locale ID that is used to localize the date and number formatting.
      * For number and date formatting this is only effective when the
      * [PHP intl extension](http://php.net/manual/en/book.intl.php) is installed.
-     * If not set, [[\core\Application::language]] will be used.
+     * If not set, [[\cst\Application::language]] will be used.
      */
     public $locale;
     /**
@@ -65,7 +67,7 @@ class Formatter extends Object
      * This can be any value that may be passed to [date_default_timezone_set()](http://www.php.net/manual/en/function.date-default-timezone-set.php)
      * e.g. `UTC`, `Europe/Berlin` or `America/Chicago`.
      * Refer to the [php manual](http://www.php.net/manual/en/timezones.php) for available time zones.
-     * If this property is not set, [[\core\Application::timeZone]] will be used.
+     * If this property is not set, [[\cst\Application::timeZone]] will be used.
      *
      * Note that the default time zone for input data is assumed to be UTC by default if no time zone is included in the input date value.
      * If you store your data in a different time zone in the database, you have to adjust [[defaultTimeZone]] accordingly.
@@ -358,8 +360,7 @@ class Formatter extends Object
         if ($value === null) {
             return $this->nullDisplay;
         }
-        //return HtmlPurifier::process($value, $config);
-        return $value;
+        return HtmlPurifier::process($value, $config);
     }
 
     /**
@@ -1119,7 +1120,7 @@ class Formatter extends Object
      * @param integer $decimals the number of digits after the decimal point
      * @param array $options optional configuration for the number formatter. This parameter will be merged with [[numberFormatterOptions]].
      * @param array $textOptions optional configuration for the number formatter. This parameter will be merged with [[numberFormatterTextOptions]].
-     * @return array [parameters for Yii::t containing formatted number, internal position of size unit]
+     * @return array [parameters for App::t containing formatted number, internal position of size unit]
      * @throws InvalidParamException if the input value is not numeric or the formatting failed.
      */
     private function formatSizeNumber($value, $decimals, $options, $textOptions)

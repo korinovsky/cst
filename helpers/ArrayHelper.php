@@ -453,7 +453,7 @@ class ArrayHelper
      * @param boolean $valuesOnly whether to encode array values only. If false,
      * both the array keys and array values will be encoded.
      * @param string $charset the charset that the data is using. If not set,
-     * [[\core\Application::charset]] will be used.
+     * [[\cst\Application::charset]] will be used.
      * @return array the encoded data
      * @see http://www.php.net/manual/en/function.htmlspecialchars.php
      */
@@ -578,5 +578,19 @@ class ArrayHelper
             }
             return true;
         }
+    }
+
+    /**
+     * Checks whether a variable is an array or [[\Traversable]].
+     *
+     * This method does the same as the PHP function [is_array()](http://php.net/manual/en/function.is-array.php)
+     * but additionally works on objects that implement the [[\Traversable]] interface.
+     * @param mixed $var The variable being evaluated.
+     * @return bool whether $var is array-like
+     * @see http://php.net/manual/en/function.is-array.php
+     */
+    public static function isTraversable($var)
+    {
+        return is_array($var) || $var instanceof \Traversable;
     }
 }

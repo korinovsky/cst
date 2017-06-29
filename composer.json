@@ -8,7 +8,9 @@
   "homepage": "https://github.com/korinovsky/cst",
   "type": "cst-extension",
   "require": {
-    "php": ">=7.1"
+    "php": ">=7.1",
+    "ezyang/htmlpurifier": "~4.6",
+    "swiftmailer/swiftmailer": "~5.0"
   },
   "autoload": {
     "psr-4": {

@@ -14,15 +14,12 @@ use cst\base\Object;
 /**
  * I18N provides features related with internationalization (I18N) and localization (L10N).
  *
- * I18N is configured as an application component in [[\core\Application]] by default.
- * You can access that instance via `Yii::$app->i18n`.
+ * I18N is configured as an application component in [[\cst\Application]] by default.
+ * You can access that instance via `App::$app->i18n`.
  *
  * @property MessageFormatter $messageFormatter The message formatter to be used to format message via ICU
  * message format. Note that the type of this property differs in getter and setter. See
  * [[getMessageFormatter()]] and [[setMessageFormatter()]] for details.
- *
- * @author Qiang Xue <qiang.xue@gmail.com>
- * @since 2.0
  */
 class I18N extends Object
 {
@@ -39,7 +36,7 @@ class I18N extends Object
      * This property may be modified on the fly by extensions who want to have their own message sources
      * registered under their own namespaces.
      *
-     * The category "yii" and "app" are always defined. The former refers to the messages used in the Yii core
+     * The category "yii" and "app" are always defined. The former refers to the messages used in the App core
      * framework code, while the latter refers to the default message category for custom application code.
      * By default, both of these categories use [[PhpMessageSource]] and the corresponding message files are
      * stored under "@yii/messages" and "@app/messages", respectively.
@@ -57,13 +54,13 @@ class I18N extends Object
         parent::init();
         if (!isset($this->translations['mvc*'])) {
             $this->translations['mvc*'] = [
-                'class' => 'core\i18n\PhpMessageSource',
+                'class' => 'cst\i18n\PhpMessageSource',
             ];
         }
         if (!isset($this->translations['*'])) {
             $this->translations['*'] = [
-                'class' => 'core\i18n\PhpMessageSource',
-                'basePath' => APP_DIR.'messages',
+                'class' => 'cst\i18n\PhpMessageSource',
+                'basePath' => APP_PATH.'messages',
             ];
         }
     }
